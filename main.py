@@ -5,15 +5,8 @@ from classes import Project, Task, Developer, ProjectCreate, TaskCreate, Develop
     DeveloperUpdate
 from storage import Projects, Developers, Tasks
 from uuid import uuid4, UUID
-from fastapi import Request
 
 app = FastAPI()
-
-@app.exception_handler(Exception)
-async def handle_500(request: Request, exc: Exception):
-    if isinstance(exc, HTTPException):
-        raise exc
-    return JSONResponse(status_code=500, content={"status": 500, "reason": str(exc)})
 
 # Проекты
 @app.get("/projects", tags=["Проекты"], summary="Получить все проекты")
