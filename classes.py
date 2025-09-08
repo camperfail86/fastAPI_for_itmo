@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from uuid import UUID
 
 class ProjectCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
@@ -10,7 +11,7 @@ class ProjectCreate(BaseModel):
     )
 
 class Project(ProjectCreate):
-    id: int
+    id: UUID
 
 class TaskCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
@@ -22,7 +23,7 @@ class TaskCreate(BaseModel):
     )
 
 class Task(TaskCreate):
-    id: int
+    id: UUID
 
 class DeveloperCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
@@ -30,5 +31,5 @@ class DeveloperCreate(BaseModel):
     skill: int = Field(ge=1, le=10)
 
 class Developer(DeveloperCreate):
-    id: int
+    id: UUID
     task: Optional[Task] = None

@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from classes import Project, Task, Developer, ProjectCreate, TaskCreate, DeveloperCreate
 from storage import Projects, Developers, Tasks
+from uuid import uuid4, UUID
 
 app = FastAPI()
 
@@ -12,7 +13,7 @@ def get_projects():
     return Projects
 
 @app.get("/projects/{project_id}", tags=["Проекты"], summary="Получить определенный проект")
-def get_project(project_id: int):
+def get_project(project_id: UUID):
     for project in Projects:
         if project.id == project_id:
             return project
@@ -20,13 +21,12 @@ def get_project(project_id: int):
 
 @app.post("/projects", tags=["Проекты"], summary="Добавить проект")
 def create_project(new_project: ProjectCreate):
-    new_id = len(Projects) + 1000
-    proj = Project(id = new_id, name = new_project.name, start_date = new_project.start_date)
+    proj = Project(id = uuid4(), name = new_project.name, start_date = new_project.start_date)
     Projects.append(proj)
-    return {"response": "Проект успешно добавлен" }
+    return proj
 
 @app.delete("/projects/{project_id}", tags = ["Проекты"], summary = "Удалить проект")
-def delete_project(project_id: int):
+def delete_project(project_id: UUID):
     for project in Projects:
         if project.id == project_id:
             Projects.remove(project)
@@ -37,7 +37,7 @@ def delete_project(project_id: int):
     raise HTTPException(status_code = 404, detail = "Такого проекта не существует")
 
 @app.patch("/projects/{project_id}", tags = ["Проекты"], summary = "Изменить проект")
-def update_project(project_id: int, new_project: ProjectCreate):
+def update_project(project_id: UUID, new_project: ProjectCreate):
     for project in Projects:
         if project.id == project_id:
             project.name = new_project.name
@@ -47,14 +47,13 @@ def update_project(project_id: int, new_project: ProjectCreate):
 
 
 
-
 # Таски
 @app.get("/tasks", tags = ["Задачи"], summary = "Получить все задачи")
 def get_tasks():
     return Tasks
 
 @app.get("/tasks/{task_id}", tags = ["Задачи"], summary = "Получить конкретную задачу")
-def get_task(task_id: int):
+def get_task(task_id: UUID):
     for task in Tasks:
         if task.id == task_id:
             return task
@@ -62,21 +61,23 @@ def get_task(task_id: int):
 
 @app.post("/tasks", tags = ["Задачи"], summary = "Добавить задачу")
 def create_task(task: TaskCreate):
-    task_id = len(Tasks) + 100
-    t = Task(id = task_id, name = task.name, difficulty = task.difficulty, deadline = task.deadline)
+    t = Task(id = uuid4(), name = task.name, difficulty = task.difficulty, deadline = task.deadline)
     Tasks.append(t)
-    return {"response": "Задача успешно добавлена" }
+    return t
 
 @app.delete("/tasks/{task_id}", tags = ["Задачи"], summary = "Удалить задачу")
-def delete_task(task_id: int):
+def delete_task(task_id: UUID):
     for task in Tasks:
         if task.id == task_id:
             Tasks.remove(task)
-            return {"response": "Задача удалена"}
+            return JSONResponse(
+                content={"response": "Задача удалена"},
+                status_code=202
+            )
     raise HTTPException(status_code = 404, detail = "Задача не найдена")
 
 @app.patch("/tasks/{task_id}", tags = ["Задачи"], summary = "Изменить задачу")
-def update_task(task_id: int, new_task: TaskCreate):
+def update_task(task_id: UUID, new_task: TaskCreate):
     for task in Tasks:
         if task.id == task_id:
             task.name = new_task.name
@@ -85,39 +86,37 @@ def update_task(task_id: int, new_task: TaskCreate):
             return {"response": "Задача изменена"}
     raise HTTPException(status_code = 404, detail = "Задача не найдена")
 
-
-
-
-
 # Разрабы
 @app.get("/developers", tags=["Разработчики"], summary="Получить всех разработчиков")
 def get_developers():
     return Developers
 
 @app.get("/developers/{developer_id}", tags=["Разработчики"], summary="Получить одного разработчика")
-def get_developer(developer_id: int):
+def get_developer(developer_id: UUID):
     for developer in Developers:
         if developer.id == developer_id:
             return developer
     raise HTTPException(status_code = 404, detail = "Разработчик не найден")
 
 @app.delete("/developers/{developer_id}", tags=["Разработчики"], summary="Удалить разработчика", status_code = 202)
-def delete_developer(developer_id: int):
+def delete_developer(developer_id: UUID):
     for developer in Developers:
         if developer.id == developer_id:
             Developers.remove(developer)
-            return {"response": "Разработчик успешно удален"}
+            return JSONResponse(
+                content={"response": "Разработчик удален"},
+                status_code=202
+            )
     raise HTTPException(status_code = 404, detail = "Разработчик не найден")
 
 @app.post("/developers", tags=["Разработчики"], summary="Добавить разработчика")
 def create_developer(developer: DeveloperCreate):
-    developer_id = len(Developers) + 1
-    dev = Developer(id = developer_id, name = developer.name, age = developer.age, skill = developer.skill, task = None)
+    dev = Developer(id = uuid4(), name = developer.name, age = developer.age, skill = developer.skill, task = None)
     Developers.append(dev)
     return dev
 
 @app.patch("/developers/{developer_id}", tags=["Разработчики"], summary="Изменить данные у разработчика")
-def update_developer(developer_id: int, new_developer: DeveloperCreate):
+def update_developer(developer_id: UUID, new_developer: DeveloperCreate):
     for developer in Developers:
         if developer.id == developer_id:
             developer.name = new_developer.name
@@ -127,13 +126,13 @@ def update_developer(developer_id: int, new_developer: DeveloperCreate):
     raise HTTPException(status_code = 404, detail = "Разработчик не найден")
 
 @app.patch("/developers/{developer_id}/{task_id}", tags=["Разработчики"], summary="Изменить/добавить задачу разработчику")
-def update_task_developer(developer_id: int, task_id: int):
+def update_task_developer(developer_id: UUID, task_id: UUID):
     for developer in Developers:
         if developer.id == developer_id:
             for task in Tasks:
                 if task.id == task_id:
                     developer.task = task
-                    return {"response": "Задача добавлена или изменена у разработчика"}
+                    return developer
     raise HTTPException(status_code = 404, detail = "Такой разработчик или задача не найдены")
 
 
