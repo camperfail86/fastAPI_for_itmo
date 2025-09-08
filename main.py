@@ -1,16 +1,24 @@
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
-from classes import Project, Task, Developer, ProjectCreate, TaskCreate, DeveloperCreate
+from classes import Project, Task, Developer, ProjectCreate, TaskCreate, DeveloperCreate, ProjectUpdate, TaskUpdate, \
+    DeveloperUpdate
 from storage import Projects, Developers, Tasks
 from uuid import uuid4, UUID
+from fastapi import Request
 
 app = FastAPI()
+
+@app.exception_handler(Exception)
+async def handle_500(request: Request, exc: Exception):
+    if isinstance(exc, HTTPException):
+        raise exc
+    return JSONResponse(status_code=500, content={"status": 500, "reason": str(exc)})
 
 # Проекты
 @app.get("/projects", tags=["Проекты"], summary="Получить все проекты")
 def get_projects():
-    return Projects
+    return {"list": Projects}
 
 @app.get("/projects/{project_id}", tags=["Проекты"], summary="Получить определенный проект")
 def get_project(project_id: UUID):
@@ -37,11 +45,13 @@ def delete_project(project_id: UUID):
     raise HTTPException(status_code = 404, detail = "Такого проекта не существует")
 
 @app.patch("/projects/{project_id}", tags = ["Проекты"], summary = "Изменить проект")
-def update_project(project_id: UUID, new_project: ProjectCreate):
+def update_project(project_id: UUID, new_project: ProjectUpdate):
     for project in Projects:
         if project.id == project_id:
-            project.name = new_project.name
-            project.start_date = new_project.start_date
+            if new_project.name is not None:
+                project.name = new_project.name
+            if new_project.start_date is not None:
+                project.start_date = new_project.start_date
             return {"response": "Проект успешно изменен"}
     raise HTTPException(status_code = 404, detail = "Такого проекта не существует")
 
@@ -50,7 +60,7 @@ def update_project(project_id: UUID, new_project: ProjectCreate):
 # Таски
 @app.get("/tasks", tags = ["Задачи"], summary = "Получить все задачи")
 def get_tasks():
-    return Tasks
+    return {"list": Tasks}
 
 @app.get("/tasks/{task_id}", tags = ["Задачи"], summary = "Получить конкретную задачу")
 def get_task(task_id: UUID):
@@ -77,19 +87,22 @@ def delete_task(task_id: UUID):
     raise HTTPException(status_code = 404, detail = "Задача не найдена")
 
 @app.patch("/tasks/{task_id}", tags = ["Задачи"], summary = "Изменить задачу")
-def update_task(task_id: UUID, new_task: TaskCreate):
+def update_task(task_id: UUID, new_task: TaskUpdate):
     for task in Tasks:
         if task.id == task_id:
-            task.name = new_task.name
-            task.difficulty = new_task.difficulty
-            task.deadline = new_task.deadline
+            if new_task.difficulty is not None:
+                task.difficulty = new_task.difficulty
+            if new_task.deadline is not None:
+                task.deadline = new_task.deadline
+            if new_task.name is not None:
+                task.name = new_task.name
             return {"response": "Задача изменена"}
     raise HTTPException(status_code = 404, detail = "Задача не найдена")
 
 # Разрабы
 @app.get("/developers", tags=["Разработчики"], summary="Получить всех разработчиков")
 def get_developers():
-    return Developers
+    return { "list": Developers }
 
 @app.get("/developers/{developer_id}", tags=["Разработчики"], summary="Получить одного разработчика")
 def get_developer(developer_id: UUID):
@@ -116,12 +129,15 @@ def create_developer(developer: DeveloperCreate):
     return dev
 
 @app.patch("/developers/{developer_id}", tags=["Разработчики"], summary="Изменить данные у разработчика")
-def update_developer(developer_id: UUID, new_developer: DeveloperCreate):
+def update_developer(developer_id: UUID, new_developer: DeveloperUpdate):
     for developer in Developers:
         if developer.id == developer_id:
-            developer.name = new_developer.name
-            developer.age = new_developer.age
-            developer.skill = new_developer.skill
+            if new_developer.age is not None:
+                developer.age = new_developer.age
+            if new_developer.name is not None:
+                developer.name = new_developer.name
+            if new_developer.skill is not None:
+                developer.skill = new_developer.skill
             return {"response": "Данные разработчика успешно изменены"}
     raise HTTPException(status_code = 404, detail = "Разработчик не найден")
 

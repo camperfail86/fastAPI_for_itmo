@@ -20,7 +20,7 @@ async def test_get_projects():
         response = await client.get("/projects")
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 0
+        assert len(data["list"]) == 0
 
 @pytest.mark.asyncio
 async def test_post_and_delete_project():
@@ -37,8 +37,8 @@ async def test_post_and_delete_project():
         response = await client.get("/projects")
         assert response.status_code == 200
         proj = response.json()
-        assert len(proj) == 1
-        assert proj[0]["name"] == "Чат-бот"
+        assert len(proj["list"]) == 1
+        assert proj["list"][0]["name"] == "Чат-бот"
 
     async with AsyncClient(
             base_url="http://localhost:8000",
@@ -52,7 +52,7 @@ async def test_post_and_delete_project():
             transport=ASGITransport(app=app)) as client:
         response = await client.get("/projects")
         assert response.status_code == 200
-        proj = response.json()
+        proj = response.json()["list"]
         assert len(proj) == 2
         assert proj[0]["name"] == "Чат-бот"
         assert proj[1]["name"] == "Телеграм-бот"
@@ -79,7 +79,7 @@ async def test_patch_project():
             base_url="http://localhost:8000",
             transport=ASGITransport(app=app)
     ) as client:
-        response = await client.patch(f"/projects/{id_for_test}", json={"name": "Чат-бот", "start_date": "10.10"})
+        response = await client.patch(f"/projects/{id_for_test}", json={"start_date": "10.10"})
         assert response.status_code == 200
 
     async with AsyncClient(
@@ -90,7 +90,7 @@ async def test_patch_project():
         assert response.status_code == 200
         proj = response.json()
         assert proj["start_date"] == "10.10"
-        assert proj["name"] == "Чат-бот"
+        assert proj["name"] == "Настройка серверной части"
 
 
 # TASKS
@@ -102,7 +102,7 @@ async def test_get_tasks():
             transport=ASGITransport(app=app)) as client:
         response = await client.get("/tasks")
         assert response.status_code == 200
-        data = response.json()
+        data = response.json()["list"]
         assert len(data) == 0
 
 @pytest.mark.asyncio
@@ -110,7 +110,7 @@ async def test_post_tasks():
     async with AsyncClient(
             base_url="http://localhost:8000",
             transport=ASGITransport(app=app)) as client:
-        response = await client.post("/tasks", json = {"name": "Фикс бага", "difficulty": "1", "deadline": "14.09"})
+        response = await client.post("/tasks", json = {"name": "Фикс бага", "difficulty": 1, "deadline": "14.09"})
         assert response.status_code == 200
         data = response.json()
         assert data["name"] == "Фикс бага"
@@ -120,7 +120,7 @@ async def test_post_tasks():
             transport=ASGITransport(app=app)) as client:
         response = await client.get("/tasks")
         assert response.status_code == 200
-        data = response.json()
+        data = response.json()["list"]
         assert len(data) == 1
 
 @pytest.mark.asyncio
@@ -128,7 +128,7 @@ async def test_patch_and_delete_task():
     async with AsyncClient(
             base_url="http://localhost:8000",
             transport=ASGITransport(app=app)) as client:
-        response = await client.post("/tasks", json = {"name": "Добавление фичи", "difficulty": "2", "deadline": "22.09"})
+        response = await client.post("/tasks", json = {"name": "Добавление фичи", "difficulty": 2, "deadline": "22.09"})
         assert response.status_code == 200
         data = response.json()
         id_for_test = data["id"]
@@ -137,7 +137,7 @@ async def test_patch_and_delete_task():
         base_url="http://localhost:8000",
         transport=ASGITransport(app=app)
     ) as client:
-        response = await client.patch(f"/tasks/{id_for_test}", json={"name": "Добавление фичи", "difficulty": "2", "deadline": "25.09"})
+        response = await client.patch(f"/tasks/{id_for_test}", json={"difficulty": 2, "deadline": "25.09"})
         assert response.status_code == 200
         data = response.json()
         assert data["response"] == "Задача изменена"
@@ -165,7 +165,7 @@ async def test_get_developers():
             transport=ASGITransport(app=app)) as client:
         response = await client.get("/developers")
         assert response.status_code == 200
-        data = response.json()
+        data = response.json()["list"]
         assert len(data) == 0
 
 @pytest.mark.asyncio
@@ -173,7 +173,7 @@ async def test_post_developer():
     async with AsyncClient(
             base_url="http://localhost:8000",
             transport=ASGITransport(app=app)) as client:
-        response = await client.post("/developers", json = {"name": "Григорий Маринец-Дейнеко", "skill": "3", "age": "21"})
+        response = await client.post("/developers", json = {"name": "Григорий Маринец-Дейнеко", "skill": 3, "age": 21})
         assert response.status_code == 200
         data = response.json()
         assert data["skill"] == 3
@@ -193,7 +193,7 @@ async def test_patch_and_delete_developer():
     async with AsyncClient(
             base_url="http://localhost:8000",
             transport=ASGITransport(app=app)) as client:
-        response = await client.post("/developers", json = {"name": "Гусейн Байрамов", "skill": "1", "age": "22"})
+        response = await client.post("/developers", json = {"name": "Гусейн Байрамов", "skill": 1, "age": 22})
         assert response.status_code == 200
         data = response.json()
         id_for_test = data["id"]
@@ -202,7 +202,7 @@ async def test_patch_and_delete_developer():
         base_url="http://localhost:8000",
         transport=ASGITransport(app=app)
     ) as client:
-        response = await client.patch(f"/developers/{id_for_test}", json={"name": "Гусейн Байрамов", "skill": "2", "age": "22"})
+        response = await client.patch(f"/developers/{id_for_test}", json={"skill": 2})
         assert response.status_code == 200
         data = response.json()
         assert data["response"] == "Данные разработчика успешно изменены"
@@ -227,7 +227,7 @@ async def test_change_task_developer():
         base_url="http://localhost:8000",
         transport=ASGITransport(app=app)
     ) as client:
-        response = await client.post(f"/developers", json = {"name": "Гусейн Байрамов", "skill": "1", "age": "22"})
+        response = await client.post(f"/developers", json = {"name": "Гусейн Байрамов", "skill": 1, "age": 22})
         assert response.status_code == 200
         data = response.json()
         id_for_test = data["id"]
@@ -242,13 +242,13 @@ async def test_change_task_developer():
         data = response.json()
         assert data["id"] == id_for_test
         assert data["name"] == "Гусейн Байрамов"
-        assert data["skill"] != "2"
+        assert data["skill"] != 2
         assert data["task"] == None
 
     async with AsyncClient(
             base_url="http://localhost:8000",
             transport=ASGITransport(app=app)) as client:
-        response = await client.post("/tasks", json = {"name": "Добавление фичи", "difficulty": "2", "deadline": "22.09"})
+        response = await client.post("/tasks", json = {"name": "Добавление фичи", "difficulty": 2, "deadline": "22.09"})
         assert response.status_code == 200
         data = response.json()
         id_task = data["id"]
@@ -268,7 +268,7 @@ async def test_change_task_developer():
         data = response.json()
         assert data["id"] == id_for_test
         assert data["name"] == "Гусейн Байрамов"
-        assert data["skill"] != "2"
+        assert data["skill"] != 2
         assert data["task"]["id"] == id_task
         assert data["task"]["name"] == "Добавление фичи"
 
