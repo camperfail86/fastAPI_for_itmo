@@ -5,9 +5,9 @@ from storage import Projects, Developers, Tasks
 
 @pytest.fixture(autouse=True)
 def reset_storage():
-    Projects.clear(); Developers.clear(); Tasks.clear()
-    yield
-    Projects.clear(); Developers.clear(); Tasks.clear()
+    Projects.clear()
+    Developers.clear()
+    Tasks.clear()
 
 
 # PROJECTS
