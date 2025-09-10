@@ -9,7 +9,6 @@ def reset_storage():
     Developers.clear()
     Tasks.clear()
 
-
 # PROJECTS
 
 @pytest.mark.asyncio
@@ -24,12 +23,13 @@ async def test_get_projects():
 
 @pytest.mark.asyncio
 async def test_post_and_delete_project():
-    id_for_test = ""
     async with AsyncClient(
             base_url="http://localhost:8000",
             transport=ASGITransport(app=app)) as client:
         response = await client.post("/projects", json={"name": "Чат-бот", "start_date": "06.09"})
         assert response.status_code == 200
+        data = response.json()
+        assert data["name"] == "Чат-бот"
 
     async with AsyncClient(
             base_url="http://localhost:8000",
@@ -38,7 +38,7 @@ async def test_post_and_delete_project():
         assert response.status_code == 200
         proj = response.json()
         assert len(proj["list"]) == 1
-        assert proj["list"][0]["name"] == "Чат-бот"
+        assert proj["list"][0]["start_date"] == "06.09"
 
     async with AsyncClient(
             base_url="http://localhost:8000",
